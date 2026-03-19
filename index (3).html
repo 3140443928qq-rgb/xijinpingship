@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太空边缘：101区</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="bg-layer" class="zone-safe"></div>
+
+        <div id="battle-layer">
+            <canvas id="trail-canvas"></canvas>
+            <div id="object-container"></div>
+        </div>
+
+        <div id="cockpit-container">
+            <img src="cockpit.png" id="cockpit-main">
+            <div id="diy-overlay"></div>
+            <div id="dash-leds">
+                <div class="led" id="led-1"></div>
+                <div class="led" id="led-2"></div>
+            </div>
+        </div>
+
+        <div id="ui-layer">
+            <div id="build-menu" class="hidden">
+    <div class="menu-content">
+        <h2 id="menu-title">选择装备 - 槽位 1</h2>
+        <div id="item-list">
+            </div>
+        <button class="close-btn" onclick="toggleMenu(false)">关闭</button>
+    </div>
+</div>
+            <div id="header">
+                <div class="res">李币 (LC): <span id="gold-val">0</span></div>
+                <div class="res">区域: <span id="zone-name">安全贸易区</span></div>
+                <div id="energy-bar-container">能量分配 [武器/采矿/护盾]</div>
+            </div>
+
+            <div id="equipment-slots">
+                <div class="slot" data-slot="0" onclick="openBuildMenu(0)">空</div>
+                <div class="slot" data-slot="1" onclick="openBuildMenu(1)">空</div>
+                <div class="slot" data-slot="2" onclick="openBuildMenu(2)">空</div>
+                <div class="slot" data-slot="3" onclick="openBuildMenu(3)">空</div>
+            </div>
+
+            <div id="nav-panel">
+                <button onclick="warpTo('safe')">避风港</button>
+                <button onclick="warpTo('mine')">采矿区</button>
+                <button onclick="warpTo('combat')">敌对星区</button>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

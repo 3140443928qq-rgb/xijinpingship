@@ -1,0 +1,158 @@
+
+/* 确保所有游戏交互层不触发手机的下拉刷新或左右翻页 */
+#game-container {
+    touch-action: none; 
+}
+
+:root {
+    --neon-blue: #00f2ff;
+    --neon-red: #ff0044;
+    --neon-green: #33ff00;
+    --panel-bg: rgba(0, 20, 40, 0.85);
+}
+
+body, html { margin: 0; overflow: hidden; background: #000; height: 100%; width: 100%; font-family: 'Segoe UI', sans-serif; }
+
+#game-container {
+    position: fixed; /* 改为 fixed，确保在屏幕正中央 */
+    width: 1356px; 
+    height: 768px;
+    margin: 0; /* 去掉 auto margin */
+    top: 50%; 
+    left: 50%;
+    /* 这里的变量 --game-scale 会由 game.js 中的 handleResize 动态计算 */
+    transform: translate(-50%, -50%) scale(var(--game-scale, 1));
+    transform-origin: center;
+    box-shadow: 0 0 50px rgba(0,0,0,1);
+    background: #000;
+    overflow: hidden;
+}
+
+/* --- 层级管理 --- */
+#bg-layer { position: absolute; z-index: 1; width: 100%; height: 100%; transition: 2s filter; }
+#battle-layer { position: absolute; z-index: 2; width: 100%; height: 100%; }
+#cockpit-container { position: absolute; z-index: 3; width: 100%; height: 100%; pointer-events: none; }
+
+/* 修改这一行：将 z-index 设为最高，确保 UI 按钮在最前面 */
+#ui-layer { 
+    position: absolute; 
+    z-index: 10; 
+    width: 100%; 
+    height: 100%; 
+    color: white; 
+    pointer-events: none; /* 必须保留，这样点击空白处才能穿透到下层打怪 */
+}
+
+/* --- 区域背景与动画 --- */
+.zone-safe { background: url('bg_safe.jpg') center/cover; }
+.zone-mine { background: url('bg_mine.jpg') center/cover; }
+.zone-combat { background: url('bg_combat.jpg') center/cover; }
+
+@keyframes warp {
+    0% { transform: scale(1); filter: blur(0px); }
+    50% { transform: scale(1.5); filter: blur(15px) brightness(2); }
+    100% { transform: scale(1); filter: blur(0px); }
+}
+.warping { animation: warp 2s ease-in-out; }
+
+/* --- 游戏物体 (怪物/矿石) --- */
+#cockpit-main { width: 100%; height: 100%; object-fit: cover; }
+
+.game-obj {
+    position: absolute; transform: translate(-50%, -50%) scale(0.1);
+    transition: transform 3s linear, filter 0.3s; pointer-events: auto;
+    cursor: crosshair;
+}
+
+@keyframes shake {
+    0%, 100% { margin-left: 0; }
+    25% { margin-left: -5px; }
+    75% { margin-left: 5px; }
+}
+.exploding { animation: shake 0.1s infinite; filter: brightness(2) contrast(1.5); }
+
+/* --- UI 顶部资源栏 --- */
+#header {
+    position: absolute; top: 20px; left: 20px; right: 20px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+}
+.res { background: var(--panel-bg); padding: 10px 20px; border-left: 4px solid var(--neon-blue); font-size: 18px; text-shadow: 0 0 5px var(--neon-blue); }
+#energy-bar-container { background: var(--panel-bg); padding: 5px 15px; font-size: 12px; border: 1px solid rgba(255,255,255,0.2); }
+
+/* --- 4槽位装备区 --- */
+/* 确保 UI 层里的所有交互元素（按钮、槽位）恢复点击权限 */
+#ui-layer *, 
+#nav-panel button, 
+.slot, 
+.btn-buy, 
+.close-btn { 
+    pointer-events: auto !important; 
+}
+#equipment-slots { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; }
+.slot { 
+    width: 90px; height: 90px; 
+    border: 2px dashed var(--neon-blue); 
+    background: rgba(0,0,0,0.6); 
+    display: flex; flex-direction: column; align-items: center; justify-content: center; 
+    cursor: pointer; font-size: 12px; transition: 0.3s;
+}
+.slot:hover { background: rgba(0, 242, 255, 0.2); box-shadow: 0 0 15px var(--neon-blue); }
+
+/* --- 导航面板 --- */
+#nav-panel { position: absolute; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; }
+#nav-panel button {
+    background: var(--panel-bg); border: 1px solid var(--neon-blue); color: white;
+    padding: 8px 15px; cursor: pointer; transition: 0.3s;
+}
+#nav-panel button:hover { background: var(--neon-blue); color: black; }
+
+/* --- 装备与升级菜单 (Modal) --- */
+#build-menu {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 500px; max-height: 500px;
+    background: var(--panel-bg); border: 2px solid var(--neon-blue);
+    padding: 25px; z-index: 100; box-shadow: 0 0 50px rgba(0,0,0,0.9);
+}
+.hidden { display: none !important; }
+.item-card {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.btn-buy {
+    background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green);
+    padding: 5px 12px; cursor: pointer;
+}
+.btn-buy:disabled { border-color: #666; color: #666; cursor: not-allowed; }
+.close-btn { width: 100%; margin-top: 20px; padding: 10px; background: rgba(255,0,0,0.2); border: 1px solid var(--neon-red); color: white; cursor: pointer; }
+
+/* --- DIY 装饰系统 --- */
+#diy-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+.diy-item { position: absolute; pointer-events: auto; cursor: move; width: 64px; height: 64px; transform: translate(-50%, -50%); filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+
+/* --- 仪表灯 --- */
+#dash-leds { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; }
+.led { width: 12px; height: 12px; border-radius: 50%; background: #333; transition: 0.5s; }
+.led-active { background: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
+.led-danger { background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); }
+
+#trail-canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+
+/* 彻底解决手机点击变拖动的问题 */
+img, .game-obj, .diy-item, #cockpit-main {
+    -webkit-user-drag: none;
+    user-drag: none;
+    -webkit-touch-callout: none; /* 禁止手机长按弹出“保存图片” */
+    user-select: none;
+    pointer-events: auto;
+}
+
+/* 解决画线画布挡住点击的问题 */
+#trail-canvas {
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* 确保容器不触发手机自带的滑动刷新 */
+#game-container {
+    touch-action: none;
+}
